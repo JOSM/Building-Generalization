@@ -1,18 +1,14 @@
-/**
- * 
- */
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.buildinggeneralization;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
 import org.openstreetmap.josm.Main;
@@ -25,215 +21,242 @@ import org.openstreetmap.josm.data.osm.WaySegment;
 import org.openstreetmap.josm.tools.Geometry;
 import org.openstreetmap.josm.tools.Shortcut;
 
-
 /**
  * @author ignacio_palermo
  *
  */
 public class BuildingGeneralizationAction extends JosmAction {
-	private List<Double> editedAngles;
-	double epsilon = Math.pow(10,-3);
-	
-	public BuildingGeneralizationAction(){
-        super(tr("Building Generalization"), "images/dialogs/rsz_3untitled.png",
-        tr("Beginners draw outlines often very inaccurate and such buildings shall be converted to rectangular-only angless between 84-96 degrees are converted to 90 degrees ."),
-        Shortcut.registerShortcut("menu:buildinggeneralization", tr("Menu: {0}", tr("Building Generalization")),
-        KeyEvent.VK_G, Shortcut.ALT_CTRL), false);
+    private List<Double> editedAngles;
+
+    double epsilon = Math.pow(10, -3);
+
+    /**
+     * Constructs a new {@code BuildingGeneralizationAction}.
+     */
+    public BuildingGeneralizationAction() {
+        super(tr("Building Generalization"), "dialogs/rsz_3untitled.png",
+                tr("Beginners draw outlines often very inaccurate and such buildings shall be converted to rectangular-only angless between 84-96 degrees are converted to 90 degrees ."),
+                Shortcut.registerShortcut("menu:buildinggeneralization", tr("Menu: {0}", tr("Building Generalization")), KeyEvent.VK_G, Shortcut.ALT_CTRL),
+                false);
     }
 
-	/* (non-Javadoc)
-	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-	 */
-	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		//System.out.println("CHANGED java file here");
-		if(Main.map!=null)
-		{
-		DataSet data = Main.map.mapView.getEditLayer().data;
-		Collection<Way> ways = data.getWays();
-		generalization(ways);
-		for(Way way : ways){
-			if(way.isClosed()==true){
-				List<Node> currentWayNodes = way.getNodes();
-			 System.out.println("New angles are :");
-				for(int i=0;i<currentWayNodes.size()-1;i++){
-		    		if(i+1>=currentWayNodes.size()-1)
-		    		{   
-		    			double angle = Geometry.getCornerAngle(currentWayNodes.get(i).getEastNorth(), currentWayNodes.get((i+1)-(currentWayNodes.size()-1)).getEastNorth(), currentWayNodes.get((i+2)-(currentWayNodes.size()-1)).getEastNorth());
-		    			System.out.println(Math.toDegrees(angle));
-			          }
-		    		else
-		    		{
-		    			double angle = Geometry.getCornerAngle(currentWayNodes.get(i).getEastNorth(), currentWayNodes.get(i+1).getEastNorth(), currentWayNodes.get(i+2).getEastNorth());
-						System.out.println(Math.toDegrees(angle));
-		    		}
-			
-			}
-		
-	        }
-		}
-	}else{
-		JOptionPane.showMessageDialog(null,"There is no frame loaded !","Allert Message",JOptionPane.PLAIN_MESSAGE);
-	}
-	}
-	/**
-	 * We will modify only the angles with the value between 84-96 degrees
-	 * @param way
-	 */
-	public void proceedGeneralization(Way way){
-		
-		    editedAngles=new ArrayList<>();
-			List<Node> currentWayNodes = way.getNodes();
-			System.out.println(way.getNodes().size());
-    	 for(int i=0;i<currentWayNodes.size()-1;i++){
-    		if(i+1>=currentWayNodes.size()-1)
-    		{   
-    			double angle = Geometry.getCornerAngle(currentWayNodes.get(i).getEastNorth(), currentWayNodes.get((i+1)-(currentWayNodes.size()-1)).getEastNorth(), currentWayNodes.get((i+2)-(currentWayNodes.size()-1)).getEastNorth());
-    			System.out.println(Math.toDegrees(angle));
-    			if(Math.abs(Math.toDegrees(angle))>=84 && Math.abs(Math.toDegrees(angle))<=96){
-    				if(Math.abs(90-(Math.abs(Math.toDegrees(angle))))>epsilon){
-    				if(Math.toDegrees(angle)<0){System.out.println("Rotation Angle is :"+(-90-Math.toDegrees(angle)));
-    					executeRotation(Math.toRadians(-1.0*(-90-Math.toDegrees(angle))),new WaySegment(way,(i+1)-(currentWayNodes.size()-1)));
-    					editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(currentWayNodes.get(i).getEastNorth(), currentWayNodes.get((i+1)-(currentWayNodes.size()-1)).getEastNorth(), currentWayNodes.get((i+2)-(currentWayNodes.size()-1)).getEastNorth()))));
-    				}else{System.out.println("Rotation Angle is :"+(90-Math.toDegrees(angle)));
-    					executeRotation(Math.toRadians(-1.0*(90-Math.toDegrees(angle))),new WaySegment(way,(i+1)-(currentWayNodes.size()-1)));
-    					editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(currentWayNodes.get(i).getEastNorth(), currentWayNodes.get((i+1)-(currentWayNodes.size()-1)).getEastNorth(), currentWayNodes.get((i+2)-(currentWayNodes.size()-1)).getEastNorth()))));
-    				}
-    				
-    			}}
-    		}else{
-				double angle = Geometry.getCornerAngle(currentWayNodes.get(i).getEastNorth(), currentWayNodes.get(i+1).getEastNorth(), currentWayNodes.get(i+2).getEastNorth());
-				System.out.println(Math.toDegrees(angle));
-				if(Math.abs(Math.toDegrees(angle))>=84 && Math.abs(Math.toDegrees(angle))<=96){
-					//editedAngles.add(Math.abs(Math.toDegrees(angle)));
-					if(Math.abs(90-(Math.abs(Math.toDegrees(angle))))>epsilon){
-    				if(Math.toDegrees(angle)<0){System.out.println("Rotation Angle is :"+(-90-Math.toDegrees(angle)));
-    					executeRotation(Math.toRadians(-1.0*(-90-Math.toDegrees(angle))),new WaySegment(way,(i+1)));
-    					editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(currentWayNodes.get(i).getEastNorth(), currentWayNodes.get(i+1).getEastNorth(), currentWayNodes.get(i+2).getEastNorth()))));
-    				}else{System.out.println("Rotation Angle is :"+(90-Math.toDegrees(angle)));
-    					executeRotation(Math.toRadians(-1.0*(90-Math.toDegrees(angle))),new WaySegment(way,(i+1)));
-    					editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(currentWayNodes.get(i).getEastNorth(), currentWayNodes.get(i+1).getEastNorth(), currentWayNodes.get(i+2).getEastNorth()))));
-    				}
-    				
-    			}
-			}
-    	}
-    	 }
-		}
-		
-	public WaySegment findSegment(Way closedWay){
-		
-		DataSet data = Main.map.mapView.getEditLayer().data;
-		int nodeIndex=Integer.MAX_VALUE;
-		double min=Double.MAX_VALUE;
-		Collection<Way> ways = data.getWays();
-		Collection<Way> roads=new ArrayList<>();
-		Way minWay=new Way();
-		for(Way w:ways)
-		if(w.isClosed()==false)
-			roads.add(w);
-		EastNorth buildingCenter=ShapeMath.getCentroid(closedWay);
-		for(Way road:roads){
-			for(int i=0;i<road.getNodes().size();i++){
-				double dist=Point.distance(new Point(buildingCenter.east(),buildingCenter.north()),new Point(road.getNode(i).getEastNorth().east(),road.getNode(i).getEastNorth().north()));
-				if(dist<min){
-					min=dist;
-					minWay=road;
-				    nodeIndex=i;
-				    ShapeMath.containingWay=minWay;
-					
-				}
-			}
-		}    if(roads.isEmpty()==false){
-			
-			if(nodeIndex==0)
-				return new WaySegment(minWay,nodeIndex);
-			else
-				if(nodeIndex==minWay.getNodes().size()-1)
-					return new WaySegment(minWay,nodeIndex-1);
-			if(!(nodeIndex==0 || nodeIndex==minWay.getNodes().size()-1)){
-				double firstDist=Point.distance(new Point(minWay.getNode(nodeIndex-1).getEastNorth().east(),minWay.getNode(nodeIndex-1).getEastNorth().north()), new Point(minWay.getNode(nodeIndex).getEastNorth().east(),minWay.getNode(nodeIndex).getEastNorth().north()),new Point( buildingCenter.east(),buildingCenter.north()));
-			    double secondDist=Point.distance(new Point(minWay.getNode(nodeIndex).getEastNorth().east(),minWay.getNode(nodeIndex).getEastNorth().north()), new Point(minWay.getNode(nodeIndex+1).getEastNorth().east(),minWay.getNode(nodeIndex+1).getEastNorth().north()),new Point( buildingCenter.east(),buildingCenter.north()));
-			   if(firstDist<secondDist)
-				   return new WaySegment(minWay,nodeIndex-1);
-			   else
-				   
-				   return new WaySegment(minWay,nodeIndex);	   
-				   
-			}
-		
-		}
-	return null;
-	}
+    @Override
+    public void actionPerformed(ActionEvent arg0) {
+        if (Main.map != null) {
+            DataSet data = Main.getLayerManager().getEditLayer().data;
+            Collection<Way> ways = data.getWays();
+            generalization(ways);
+            for (Way way : ways) {
+                if (way.isClosed()) {
+                    List<Node> currentWayNodes = way.getNodes();
+                    Main.info("New angles are :");
+                    for (int i = 0; i < currentWayNodes.size() - 1; i++) {
+                        if (i + 1 >= currentWayNodes.size() - 1) {
+                            double angle = Geometry.getCornerAngle(
+                                    currentWayNodes.get(i).getEastNorth(),
+                                    currentWayNodes.get((i + 1) - (currentWayNodes.size() - 1)).getEastNorth(),
+                                    currentWayNodes.get((i + 2) - (currentWayNodes.size() - 1)).getEastNorth());
+                            Main.info(Double.toString(Math.toDegrees(angle)));
+                        } else {
+                            double angle = Geometry.getCornerAngle(
+                                    currentWayNodes.get(i).getEastNorth(),
+                                    currentWayNodes.get(i + 1).getEastNorth(),
+                                    currentWayNodes.get(i + 2).getEastNorth());
+                            Main.info(Double.toString(Math.toDegrees(angle)));
+                        }
+                    }
+                }
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, tr("There is no frame loaded !"), tr("Alert Message"), JOptionPane.PLAIN_MESSAGE);
+        }
+    }
 
-	public void generalization(Collection<Way> ways)
-	{  
-		for(Way way : ways){
-			if(way.isClosed()==true){
-				proceedGeneralization(way);
-				if(editedAngles.isEmpty()==false){
-				//while(allAnglesAreCorrected(editedAngles)==false){
-					proceedGeneralization(way);
-				}
-				for(int i=0;i<3;i++){
-				WaySegment waySegm=findSegment(way);
-				if(waySegm!=null){
-				WaySegment buildingSegment=ShapeMath.getClosestSegment(way, waySegm);
-                if(!(buildingSegment.getFirstNode().getEastNorth().east()<ShapeMath.containingWay.getNode(0).getEastNorth().east() ||buildingSegment.getSecondNode().getEastNorth().east()>ShapeMath.containingWay.getNode(ShapeMath.containingWay.getNodes().size()-1).getEastNorth().east()))
-				ShapeMath.align(waySegm, buildingSegment);
-			}
-				}
-				}
-	}
-}
-//}
-public boolean allAnglesInInterval84_96(Way way){
-	
-	List<Node> currentWayNodes = way.getNodes();
-	for(int i=0;i<currentWayNodes.size()-1;i++){
-	if(i+1>=currentWayNodes.size()-1)
-	{   
-		double angle = Geometry.getCornerAngle(currentWayNodes.get(i).getEastNorth(), currentWayNodes.get((i+1)-(currentWayNodes.size()-1)).getEastNorth(), currentWayNodes.get((i+2)-(currentWayNodes.size()-1)).getEastNorth());
-		if((Math.abs(Math.toDegrees(angle))>=84 && Math.abs(Math.toDegrees(angle))<=96)){
-		return true;
-			}
-			
-		}
-	else{
-		double angle = Geometry.getCornerAngle(currentWayNodes.get(i).getEastNorth(), currentWayNodes.get(i+1).getEastNorth(), currentWayNodes.get(i+2).getEastNorth());
-		
-		if((Math.abs(Math.toDegrees(angle))>=84 && Math.abs(Math.toDegrees(angle))<=96)){
-		return true;
-			
-		}
-	}
-}
-	
-	return false;
-}
-	public boolean allAnglesAreCorrected(List<Double> angles)
-	{ 
-		
-		for(Double ang:angles)
-			if(!(ang>=89 &&ang<=91))
-				return false;
-		return true;
-	}
-	public void executeRotation(double angle,WaySegment segment){
-	    double centerX=segment.getFirstNode().getEastNorth().east();
-	    double centerY=segment.getFirstNode().getEastNorth().north();
-		double x=segment.getSecondNode().getEastNorth().east();
-		double y=segment.getSecondNode().getEastNorth().north();
-		
-		double newX=centerX+(x-centerX)*Math.cos(angle)-(y-centerY)*Math.sin(angle);
-		double newY=centerY+(x-centerX)*Math.sin(angle)+(y-centerY)*Math.cos(angle);
-     	EastNorth eastNorth=new EastNorth(newX,newY);
-		segment.getSecondNode().setEastNorth(eastNorth);
-		
-		Main.map.repaint();
-	}
-	
+    /**
+     * We will modify only the angles with the value between 84-96 degrees
+     * 
+     * @param way
+     */
+    public void proceedGeneralization(Way way) {
 
-	
+        editedAngles = new ArrayList<>();
+        List<Node> currentWayNodes = way.getNodes();
+        System.out.println(way.getNodes().size());
+        for (int i = 0; i < currentWayNodes.size() - 1; i++) {
+            if (i + 1 >= currentWayNodes.size() - 1) {
+                double angle = Geometry.getCornerAngle(currentWayNodes.get(i).getEastNorth(),
+                        currentWayNodes.get((i + 1) - (currentWayNodes.size() - 1)).getEastNorth(),
+                        currentWayNodes.get((i + 2) - (currentWayNodes.size() - 1)).getEastNorth());
+                System.out.println(Math.toDegrees(angle));
+                if (Math.abs(Math.toDegrees(angle)) >= 84
+                        && Math.abs(Math.toDegrees(angle)) <= 96) {
+                    if (Math.abs(90 - (Math.abs(Math.toDegrees(angle)))) > epsilon) {
+                        if (Math.toDegrees(angle) < 0) {
+                            Main.info("Rotation Angle is :" + (-90 - Math.toDegrees(angle)));
+                            executeRotation(Math.toRadians(-1.0 * (-90 - Math.toDegrees(angle))),
+                                    new WaySegment(way, (i + 1) - (currentWayNodes.size() - 1)));
+                            editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(
+                                                    currentWayNodes.get(i).getEastNorth(),
+                                                    currentWayNodes.get((i + 1) - (currentWayNodes.size() - 1)).getEastNorth(),
+                                                    currentWayNodes.get((i + 2) - (currentWayNodes.size() - 1)).getEastNorth()))));
+                        } else {
+                            Main.info("Rotation Angle is :" + (90 - Math.toDegrees(angle)));
+                            executeRotation(Math.toRadians(-1.0 * (90 - Math.toDegrees(angle))),
+                                    new WaySegment(way, (i + 1) - (currentWayNodes.size() - 1)));
+                            editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(
+                                                    currentWayNodes.get(i).getEastNorth(),
+                                                    currentWayNodes.get((i + 1) - (currentWayNodes.size() - 1)).getEastNorth(), 
+                                                    currentWayNodes.get((i + 2) - (currentWayNodes.size() - 1)).getEastNorth()))));
+                        }
+                    }
+                }
+            } else {
+                double angle = Geometry.getCornerAngle(
+                        currentWayNodes.get(i).getEastNorth(),
+                        currentWayNodes.get(i + 1).getEastNorth(),
+                        currentWayNodes.get(i + 2).getEastNorth());
+                System.out.println(Math.toDegrees(angle));
+                if (Math.abs(Math.toDegrees(angle)) >= 84 && Math.abs(Math.toDegrees(angle)) <= 96) {
+                    if (Math.abs(90 - (Math.abs(Math.toDegrees(angle)))) > epsilon) {
+                        if (Math.toDegrees(angle) < 0) {
+                            Main.info("Rotation Angle is :" + (-90 - Math.toDegrees(angle)));
+                            executeRotation(Math.toRadians(-1.0 * (-90 - Math.toDegrees(angle))), new WaySegment(way, (i + 1)));
+                            editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(
+                                            currentWayNodes.get(i).getEastNorth(),
+                                            currentWayNodes.get(i + 1).getEastNorth(),
+                                            currentWayNodes.get(i + 2).getEastNorth()))));
+                        } else {
+                            Main.info("Rotation Angle is :" + (90 - Math.toDegrees(angle)));
+                            executeRotation(Math.toRadians(-1.0 * (90 - Math.toDegrees(angle))), new WaySegment(way, (i + 1)));
+                            editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(
+                                            currentWayNodes.get(i).getEastNorth(),
+                                            currentWayNodes.get(i + 1).getEastNorth(),
+                                            currentWayNodes.get(i + 2).getEastNorth()))));
+                        }
+                    }
+                }
+            }
+        }
+    }
 
+    public WaySegment findSegment(Way closedWay) {
+
+        DataSet data = Main.getLayerManager().getEditLayer().data;
+        int nodeIndex = Integer.MAX_VALUE;
+        double min = Double.MAX_VALUE;
+        Collection<Way> ways = data.getWays();
+        Collection<Way> roads = new ArrayList<>();
+        Way minWay = new Way();
+        for (Way w : ways)
+            if (!w.isClosed())
+                roads.add(w);
+        EastNorth buildingCenter = ShapeMath.getCentroid(closedWay);
+        for (Way road : roads) {
+            for (int i = 0; i < road.getNodes().size(); i++) {
+                double dist = Point.distance(
+                        new Point(buildingCenter.east(), buildingCenter.north()),
+                        new Point(road.getNode(i).getEastNorth().east(),
+                                  road.getNode(i).getEastNorth().north()));
+                if (dist < min) {
+                    min = dist;
+                    minWay = road;
+                    nodeIndex = i;
+                    ShapeMath.containingWay = minWay;
+                }
+            }
+        }
+        if (!roads.isEmpty()) {
+            if (nodeIndex == 0)
+                return new WaySegment(minWay, nodeIndex);
+            else if (nodeIndex == minWay.getNodes().size() - 1)
+                return new WaySegment(minWay, nodeIndex - 1);
+            if (!(nodeIndex == 0 || nodeIndex == minWay.getNodes().size() - 1)) {
+                double firstDist = Point.distance(
+                        new Point(minWay.getNode(nodeIndex - 1).getEastNorth().east(),
+                                  minWay.getNode(nodeIndex - 1).getEastNorth().north()),
+                        new Point(minWay.getNode(nodeIndex).getEastNorth().east(),
+                                  minWay.getNode(nodeIndex).getEastNorth().north()),
+                        new Point(buildingCenter.east(), buildingCenter.north()));
+                double secondDist = Point.distance(
+                        new Point(minWay.getNode(nodeIndex).getEastNorth().east(),
+                                  minWay.getNode(nodeIndex).getEastNorth().north()),
+                        new Point(minWay.getNode(nodeIndex + 1).getEastNorth().east(),
+                                  minWay.getNode(nodeIndex + 1).getEastNorth().north()),
+                        new Point(buildingCenter.east(), buildingCenter.north()));
+                if (firstDist < secondDist)
+                    return new WaySegment(minWay, nodeIndex - 1);
+                else
+                    return new WaySegment(minWay, nodeIndex);
+            }
+        }
+        return null;
+    }
+
+    public void generalization(Collection<Way> ways) {
+        for (Way way : ways) {
+            if (way.isClosed()) {
+                proceedGeneralization(way);
+                if (!editedAngles.isEmpty()) {
+                    proceedGeneralization(way);
+                }
+                for (int i = 0; i < 3; i++) {
+                    WaySegment waySegm = findSegment(way);
+                    if (waySegm != null) {
+                        WaySegment buildingSegment = ShapeMath.getClosestSegment(way, waySegm);
+                        if (!(buildingSegment.getFirstNode().getEastNorth().east() < ShapeMath.containingWay.getNode(0).getEastNorth().east()
+                           || buildingSegment.getSecondNode().getEastNorth().east() > ShapeMath.containingWay.getNode(
+                                                ShapeMath.containingWay.getNodes().size() - 1).getEastNorth().east()))
+                            ShapeMath.align(waySegm, buildingSegment);
+                    }
+                }
+            }
+        }
+    }
+
+    public boolean allAnglesInInterval84_96(Way way) {
+
+        List<Node> currentWayNodes = way.getNodes();
+        for (int i = 0; i < currentWayNodes.size() - 1; i++) {
+            if (i + 1 >= currentWayNodes.size() - 1) {
+                double angle = Geometry.getCornerAngle(
+                        currentWayNodes.get(i).getEastNorth(),
+                        currentWayNodes.get((i + 1) - (currentWayNodes.size() - 1)).getEastNorth(),
+                        currentWayNodes.get((i + 2) - (currentWayNodes.size() - 1)).getEastNorth());
+                if (Math.abs(Math.toDegrees(angle)) >= 84 && Math.abs(Math.toDegrees(angle)) <= 96) {
+                    return true;
+                }
+            } else {
+                double angle = Geometry.getCornerAngle(
+                        currentWayNodes.get(i).getEastNorth(),
+                        currentWayNodes.get(i + 1).getEastNorth(),
+                        currentWayNodes.get(i + 2).getEastNorth());
+                if (Math.abs(Math.toDegrees(angle)) >= 84 && Math.abs(Math.toDegrees(angle)) <= 96) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean allAnglesAreCorrected(List<Double> angles) {
+        for (Double ang : angles)
+            if (!(ang >= 89 && ang <= 91))
+                return false;
+        return true;
+    }
+
+    public void executeRotation(double angle, WaySegment segment) {
+        double centerX = segment.getFirstNode().getEastNorth().east();
+        double centerY = segment.getFirstNode().getEastNorth().north();
+        double x = segment.getSecondNode().getEastNorth().east();
+        double y = segment.getSecondNode().getEastNorth().north();
+
+        double newX = centerX + (x - centerX) * Math.cos(angle) - (y - centerY) * Math.sin(angle);
+        double newY = centerY + (x - centerX) * Math.sin(angle) + (y - centerY) * Math.cos(angle);
+        EastNorth eastNorth = new EastNorth(newX, newY);
+        segment.getSecondNode().setEastNorth(eastNorth);
+
+        Main.map.repaint();
+    }
 }
