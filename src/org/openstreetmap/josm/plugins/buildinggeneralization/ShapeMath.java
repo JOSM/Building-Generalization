@@ -239,14 +239,14 @@ public class ShapeMath {
     
     public static void drawCenter() {
 
-        OsmDataLayer currentLayer = Main.main.getEditLayer();
+        OsmDataLayer currentLayer = Main.getLayerManager().getEditLayer();
         DataSet data = currentLayer.data;
 
         Collection<Way> selectedWays = data.getSelectedWays();
 
         for (Way way : selectedWays) {
             EastNorth center = ShapeMath.getCentroid(way);
-            Main.main.getEditLayer().data.addPrimitive(new Node(center));
+            Main.getLayerManager().getEditLayer().data.addPrimitive(new Node(center));
         }
         Main.map.repaint();
     }
