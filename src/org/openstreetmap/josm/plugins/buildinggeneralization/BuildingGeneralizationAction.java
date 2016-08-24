@@ -35,7 +35,7 @@ public class BuildingGeneralizationAction extends JosmAction {
      */
     public BuildingGeneralizationAction() {
         super(tr("Building Generalization"), "dialogs/rsz_3untitled.png",
-                tr("Beginners draw outlines often very inaccurate and such buildings shall be converted to rectangular-only angless between 84-96 degrees are converted to 90 degrees ."),
+                tr("Beginners draw outlines often very inaccurate and such buildings shall be converted to rectangular-only angles between 84-96 degrees are converted to 90 degrees."),
                 Shortcut.registerShortcut("menu:buildinggeneralization", tr("Menu: {0}", tr("Building Generalization")), KeyEvent.VK_G, Shortcut.ALT_CTRL),
                 false);
     }
