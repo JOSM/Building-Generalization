@@ -1,7 +1,7 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.buildinggeneralization;
 
-import org.openstreetmap.josm.Main;
+import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.plugins.Plugin;
 import org.openstreetmap.josm.plugins.PluginInformation;
 
@@ -16,6 +16,6 @@ public class BuildingGeneralizationPlugin extends Plugin {
      */
     public BuildingGeneralizationPlugin(PluginInformation info) {
         super(info);
-        Main.main.menu.toolsMenu.add(new BuildingGeneralizationAction());
+        MainApplication.getMenu().toolsMenu.add(new BuildingGeneralizationAction());
     }
 }
