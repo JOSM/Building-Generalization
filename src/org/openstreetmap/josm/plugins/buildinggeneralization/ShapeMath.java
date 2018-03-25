@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.openstreetmap.josm.data.coor.EastNorth;
-import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.data.osm.WaySegment;
@@ -241,9 +240,7 @@ public class ShapeMath {
     public static void drawCenter() {
 
         OsmDataLayer currentLayer = MainApplication.getLayerManager().getEditLayer();
-        DataSet data = currentLayer.data;
-
-        Collection<Way> selectedWays = data.getSelectedWays();
+        Collection<Way> selectedWays = currentLayer.data.getSelectedWays();
 
         for (Way way : selectedWays) {
             EastNorth center = ShapeMath.getCentroid(way);

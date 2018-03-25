@@ -13,7 +13,6 @@ import javax.swing.JOptionPane;
 
 import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.data.coor.EastNorth;
-import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.data.osm.WaySegment;
@@ -44,8 +43,7 @@ public class BuildingGeneralizationAction extends JosmAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (MainApplication.getMap() != null) {
-            DataSet data = getLayerManager().getEditLayer().data;
-            Collection<Way> ways = data.getWays();
+            Collection<Way> ways = getLayerManager().getEditLayer().data.getWays();
             generalization(ways);
             for (Way way : ways) {
                 if (way.isClosed()) {
@@ -142,10 +140,9 @@ public class BuildingGeneralizationAction extends JosmAction {
 
     public WaySegment findSegment(Way closedWay) {
 
-        DataSet data = getLayerManager().getEditLayer().data;
         int nodeIndex = Integer.MAX_VALUE;
         double min = Double.MAX_VALUE;
-        Collection<Way> ways = data.getWays();
+        Collection<Way> ways = getLayerManager().getEditLayer().data.getWays();
         Collection<Way> roads = new ArrayList<>();
         Way minWay = new Way();
         for (Way w : ways)
