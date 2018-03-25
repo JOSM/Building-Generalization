@@ -74,7 +74,7 @@ public class BuildingGeneralizationAction extends JosmAction {
     /**
      * We will modify only the angles with the value between 84-96 degrees
      * 
-     * @param way
+     * @param way way to process
      */
     public void proceedGeneralization(Way way) {
 
