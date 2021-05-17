@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.openstreetmap.josm.data.coor.EastNorth;
+import org.openstreetmap.josm.data.osm.IWaySegment;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.Way;
-import org.openstreetmap.josm.data.osm.WaySegment;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.layer.OsmDataLayer;
 import org.openstreetmap.josm.tools.Logging;
@@ -18,13 +18,13 @@ import org.openstreetmap.josm.tools.Logging;
 public class ShapeMath {
     static Way containingWay;
 
-    public static WaySegment getClosestSegment(Way building, WaySegment roadSegment){
+    public static IWaySegment<Node, Way> getClosestSegment(Way building, IWaySegment<?, Way> roadSegment){
         double maxDistance = Double.MAX_VALUE;
-        WaySegment closestSegment = null;
+        IWaySegment<Node, Way> closestSegment = null;
     
         for(int i=0;i<building.getNodesCount()-1;i++){
 
-            WaySegment currentSegment = new WaySegment(building, i);
+            IWaySegment<Node, Way> currentSegment = new IWaySegment<>(building, i);
             EastNorth currentSegmentCentroid = getCentroid(currentSegment);
             Point p = new Point(currentSegmentCentroid.getX(), currentSegmentCentroid.getY());
             Point x1 = new Point(roadSegment.getFirstNode().getEastNorth().getX(), roadSegment.getFirstNode().getEastNorth().getY());
@@ -33,13 +33,13 @@ public class ShapeMath {
             
             if(distance < maxDistance){
                 maxDistance = distance;
-                closestSegment = new WaySegment(building,i);
+                closestSegment = new IWaySegment<>(building,i);
             }
         }
         return closestSegment;
     }
     
-    public static String formatSegment(WaySegment segment){
+    public static String formatSegment(IWaySegment<?, ?> segment){
         String r = "\n Segment \n firstNode: x=";
         
         r += segment.getFirstNode().getCoor().getX() + ", y=";
@@ -102,7 +102,7 @@ public class ShapeMath {
         return new EastNorth(x, y);
     }
 
-    public static EastNorth getCentroid(WaySegment segment){
+    public static EastNorth getCentroid(IWaySegment<?, ?> segment){
         double x = 0, y = 0;
         
         x = x + segment.getFirstNode().getEastNorth().getX() + segment.getSecondNode().getEastNorth().getX();
@@ -179,7 +179,7 @@ public class ShapeMath {
         MainApplication.getLayerManager().getEditLayer().invalidate();
     }
 
-    public static void align(WaySegment roadSegment, WaySegment toRotateSegment) {
+    public static void align(IWaySegment<?, ?> roadSegment, IWaySegment<?, Way> toRotateSegment) {
         double x1 = roadSegment.getFirstNode().getEastNorth().getX();
         double x2 = roadSegment.getSecondNode().getEastNorth().getX();
         double x3 = toRotateSegment.getFirstNode().getEastNorth().getX();
@@ -195,12 +195,12 @@ public class ShapeMath {
         
         requiredAngle = normalise(requiredAngle);
         
-        rotate(toRotateSegment.way, requiredAngle, getCentroid(toRotateSegment.way));
+        rotate(toRotateSegment.getWay(), requiredAngle, getCentroid(toRotateSegment.getWay()));
         MainApplication.getLayerManager().getEditLayer().invalidate();
     }
     
-    public static void align(WaySegment roadSegment, Way building){
-        WaySegment closestSegment = ShapeMath.getClosestSegment(building, roadSegment);
+    public static void align(IWaySegment<Node, Way> roadSegment, Way building){
+        IWaySegment<?, ?> closestSegment = ShapeMath.getClosestSegment(building, roadSegment);
         double x1 = roadSegment.getFirstNode().getEastNorth().getX();
         double x2 = roadSegment.getSecondNode().getEastNorth().getX();
         double x3 = closestSegment.getFirstNode().getEastNorth().getX();
