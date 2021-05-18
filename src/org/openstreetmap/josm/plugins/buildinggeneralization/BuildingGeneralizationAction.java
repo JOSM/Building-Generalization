@@ -13,9 +13,9 @@ import javax.swing.JOptionPane;
 
 import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.data.coor.EastNorth;
+import org.openstreetmap.josm.data.osm.IWaySegment;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.Way;
-import org.openstreetmap.josm.data.osm.WaySegment;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.tools.Geometry;
 import org.openstreetmap.josm.tools.Logging;
@@ -93,7 +93,7 @@ public class BuildingGeneralizationAction extends JosmAction {
                         if (Math.toDegrees(angle) < 0) {
                             Logging.info("Rotation Angle is :" + (-90 - Math.toDegrees(angle)));
                             executeRotation(Math.toRadians(-1.0 * (-90 - Math.toDegrees(angle))),
-                                    new WaySegment(way, (i + 1) - (currentWayNodes.size() - 1)));
+                                    new IWaySegment<>(way, (i + 1) - (currentWayNodes.size() - 1)));
                             editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(
                                                     currentWayNodes.get(i).getEastNorth(),
                                                     currentWayNodes.get((i + 1) - (currentWayNodes.size() - 1)).getEastNorth(),
@@ -101,7 +101,7 @@ public class BuildingGeneralizationAction extends JosmAction {
                         } else {
                             Logging.info("Rotation Angle is :" + (90 - Math.toDegrees(angle)));
                             executeRotation(Math.toRadians(-1.0 * (90 - Math.toDegrees(angle))),
-                                    new WaySegment(way, (i + 1) - (currentWayNodes.size() - 1)));
+                                    new IWaySegment<>(way, (i + 1) - (currentWayNodes.size() - 1)));
                             editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(
                                                     currentWayNodes.get(i).getEastNorth(),
                                                     currentWayNodes.get((i + 1) - (currentWayNodes.size() - 1)).getEastNorth(), 
@@ -119,14 +119,14 @@ public class BuildingGeneralizationAction extends JosmAction {
                     if (Math.abs(90 - (Math.abs(Math.toDegrees(angle)))) > epsilon) {
                         if (Math.toDegrees(angle) < 0) {
                             Logging.info("Rotation Angle is :" + (-90 - Math.toDegrees(angle)));
-                            executeRotation(Math.toRadians(-1.0 * (-90 - Math.toDegrees(angle))), new WaySegment(way, (i + 1)));
+                            executeRotation(Math.toRadians(-1.0 * (-90 - Math.toDegrees(angle))), new IWaySegment<>(way, (i + 1)));
                             editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(
                                             currentWayNodes.get(i).getEastNorth(),
                                             currentWayNodes.get(i + 1).getEastNorth(),
                                             currentWayNodes.get(i + 2).getEastNorth()))));
                         } else {
                             Logging.info("Rotation Angle is :" + (90 - Math.toDegrees(angle)));
-                            executeRotation(Math.toRadians(-1.0 * (90 - Math.toDegrees(angle))), new WaySegment(way, (i + 1)));
+                            executeRotation(Math.toRadians(-1.0 * (90 - Math.toDegrees(angle))), new IWaySegment<>(way, (i + 1)));
                             editedAngles.add(Math.abs(Math.toDegrees(Geometry.getCornerAngle(
                                             currentWayNodes.get(i).getEastNorth(),
                                             currentWayNodes.get(i + 1).getEastNorth(),
@@ -138,7 +138,7 @@ public class BuildingGeneralizationAction extends JosmAction {
         }
     }
 
-    public WaySegment findSegment(Way closedWay) {
+    public IWaySegment<Node, Way> findSegment(Way closedWay) {
 
         int nodeIndex = Integer.MAX_VALUE;
         double min = Double.MAX_VALUE;
@@ -165,9 +165,9 @@ public class BuildingGeneralizationAction extends JosmAction {
         }
         if (!roads.isEmpty()) {
             if (nodeIndex == 0)
-                return new WaySegment(minWay, nodeIndex);
+                return new IWaySegment<>(minWay, nodeIndex);
             else if (nodeIndex == minWay.getNodes().size() - 1)
-                return new WaySegment(minWay, nodeIndex - 1);
+                return new IWaySegment<>(minWay, nodeIndex - 1);
             if (!(nodeIndex == 0 || nodeIndex == minWay.getNodes().size() - 1)) {
                 double firstDist = Point.distance(
                         new Point(minWay.getNode(nodeIndex - 1).getEastNorth().east(),
@@ -182,9 +182,9 @@ public class BuildingGeneralizationAction extends JosmAction {
                                   minWay.getNode(nodeIndex + 1).getEastNorth().north()),
                         new Point(buildingCenter.east(), buildingCenter.north()));
                 if (firstDist < secondDist)
-                    return new WaySegment(minWay, nodeIndex - 1);
+                    return new IWaySegment<>(minWay, nodeIndex - 1);
                 else
-                    return new WaySegment(minWay, nodeIndex);
+                    return new IWaySegment<>(minWay, nodeIndex);
             }
         }
         return null;
@@ -198,9 +198,9 @@ public class BuildingGeneralizationAction extends JosmAction {
                     proceedGeneralization(way);
                 }
                 for (int i = 0; i < 3; i++) {
-                    WaySegment waySegm = findSegment(way);
+                    IWaySegment<?, Way> waySegm = findSegment(way);
                     if (waySegm != null) {
-                        WaySegment buildingSegment = ShapeMath.getClosestSegment(way, waySegm);
+                        IWaySegment<?, Way> buildingSegment = ShapeMath.getClosestSegment(way, waySegm);
                         if (!(buildingSegment.getFirstNode().getEastNorth().east() < ShapeMath.containingWay.getNode(0).getEastNorth().east()
                            || buildingSegment.getSecondNode().getEastNorth().east() > ShapeMath.containingWay.getNode(
                                                 ShapeMath.containingWay.getNodes().size() - 1).getEastNorth().east()))
@@ -244,7 +244,7 @@ public class BuildingGeneralizationAction extends JosmAction {
         return true;
     }
 
-    public void executeRotation(double angle, WaySegment segment) {
+    public void executeRotation(double angle, IWaySegment<?, ?> segment) {
         double centerX = segment.getFirstNode().getEastNorth().east();
         double centerY = segment.getFirstNode().getEastNorth().north();
         double x = segment.getSecondNode().getEastNorth().east();
