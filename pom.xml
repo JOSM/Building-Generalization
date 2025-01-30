@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.openstreetmap.josm.plugins</groupId>
+        <artifactId>plugin-root</artifactId>
+        <version>SNAPSHOT</version>
+    </parent>
+    <artifactId>Building-Generalization</artifactId>
+
+    <url>${plugin.link}</url>
+    <developers>
+        <developer>
+          <name>Rotariu Anamaria</name>
+        </developer>
+    </developers>
+    <properties>
+        <plugin.src.dir>src</plugin.src.dir>
+        <plugin.main.version>19044</plugin.main.version>
+        <plugin.author>Rotariu Anamaria</plugin.author>
+        <plugin.class>org.openstreetmap.josm.plugins.buildinggeneralization.BuildingGeneralizationPlugin</plugin.class>
+        <plugin.description>Allows the user to correct angle of buildings to 90 degrees, and aligns all loaded buildings to nearest road.</plugin.description>
+        <plugin.icon>images/dialogs/rsz_3untitled.png</plugin.icon>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Plugin-Link>${plugin.link}</Plugin-Link>
+                            <Plugin-Icon>${plugin.icon}</Plugin-Icon>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
